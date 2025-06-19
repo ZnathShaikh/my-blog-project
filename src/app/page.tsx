@@ -1,73 +1,74 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { LOCAL_STORAGE_KEYS } from "@/constants/storage";
 
 export default function AuthPage() {
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-
-    const payload = { username, password };
-    const whichApi = isLogin ? "/api/login" : "/api/signup";
-
     try {
-      const res = await fetch(whichApi, {
+      const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ username, password }),
       });
 
-      let data = {};
-      try {
-        data = await res.json();
-      } catch {
-        data = { error: "Something went wrong" };
+      if (!res.ok) {
+        const errorData = await res.json();
+        toast.error(errorData.error || "Login failed");
+        return;
       }
+
+      const data = await res.json();
+
+      // TODO: Replace localStorage with JWT session handling
+      localStorage.setItem(LOCAL_STORAGE_KEYS.USERNAME, username);
+
+      toast.success("Login successful!");
+      router.push("/");
+    } catch (err: any) {
+      toast.error(err.message || "Login failed");
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
       if (!res.ok) {
-        if (!isLogin && data.error === "User already exists") {
-          toast.error("User already exists. Please log in instead.");
-        } else {
-          toast.error(data.error || "Something went wrong");
-          setError(data.error || "Something went wrong");
-        }
+        const errorData = await res.json();
+        toast.error(errorData.error || "Signup failed");
         return;
       }
 
-      if (!isLogin && res.status === 201) {
-        toast.success("Signup successful! Please log in.");
-        setIsLogin(true);
-        return;
-      }
+      const data = await res.json();
 
-      if (isLogin) {
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("username", data.user.username);
-        toast.success("Login successful!");
-        window.location.href = "/";
-      } else {
-        setIsLogin(true);
-        l;
-      }
+      // TODO: Replace localStorage with JWT session handling
+      localStorage.setItem(LOCAL_STORAGE_KEYS.USERNAME, username);
 
-      console.log(data);
-    } catch (err) {
-      console.error("API error:", err);
-      toast.error("Something went wrong. Please try again.");
-      setError("Something went wrong. Please try again.");
+      toast.success("Signup successful!");
+      router.push("/");
+    } catch (err: any) {
+      toast.error(err.message || "Signup failed");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-teal-200">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={isLogin ? handleLogin : handleSignup}
         className="bg-white p-6 rounded shadow-md w-full max-w-sm"
       >
         <h2 className="text-2xl font-bold mb-4 text-teal-800 text-center">

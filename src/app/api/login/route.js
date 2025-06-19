@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
+
 const prisma = new PrismaClient();
 
 export async function POST(request) {
@@ -22,12 +23,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // ✅ 3. Compare password (plain match for now)
+    // TODO: Use hashed password comparison (e.g., bcrypt.compare) for secure login
+
     if (user.password !== password) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // ✅ 4. Return success (exclude sensitive info)
+    // // TODO: Implement JWT instead of returning plain username
+
     return NextResponse.json({
       message: 'Login successful',
       user: {

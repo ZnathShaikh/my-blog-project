@@ -15,6 +15,7 @@ export async function POST(request) {
     });
   }
 
+// TODO: Hash password before storing in DB (e.g., using bcrypt.hash)
   const newUser = await prisma.user.create({
     data: {
       username,
