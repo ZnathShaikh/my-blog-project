@@ -14,6 +14,8 @@ export default function AuthPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // TODO: Move this fetch call to a reusable API helper function
+
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -29,7 +31,8 @@ export default function AuthPage() {
       const data = await res.json();
 
       // TODO: Replace localStorage with JWT session handling
-      localStorage.setItem(LOCAL_STORAGE_KEYS.USERNAME, username);
+      localStorage.setItem(LOCAL_STORAGE_KEYS.USERNAME, data.user.username);
+      localStorage.setItem(LOCAL_STORAGE_KEYS.USER_ID, String(data.user.id)); // Convert to string
 
       toast.success("Login successful!");
       router.push("/");
@@ -41,6 +44,8 @@ export default function AuthPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // TODO: Move this fetch call to a reusable API helper function
+
       const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,13 +58,8 @@ export default function AuthPage() {
         return;
       }
 
-      const data = await res.json();
-
-      // TODO: Replace localStorage with JWT session handling
-      localStorage.setItem(LOCAL_STORAGE_KEYS.USERNAME, username);
-
       toast.success("Signup successful!");
-      router.push("/");
+      setIsLogin(true);
     } catch (err: any) {
       toast.error(err.message || "Signup failed");
     }
