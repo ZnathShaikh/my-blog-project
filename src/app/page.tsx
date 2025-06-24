@@ -1,113 +1,61 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import toast from "react-hot-toast";
-import { LOCAL_STORAGE_KEYS } from "@/constants/storage";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import Navbar from "@/components /Navbar";
 
-export default function AuthPage() {
-  const router = useRouter();
-  const [isLogin, setIsLogin] = useState(false);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+export default function HomePage() {
+  const [blogs, setBlogs] = useState<Blog[]>([]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      // TODO: Move this fetch call to a reusable API helper function
-
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        toast.error(errorData.error || "Login failed");
-        return;
-      }
-
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      /////TODO: Add pagination (UI + backend)////
+      const res = await fetch("/api/blogs");
       const data = await res.json();
-
-      // TODO: Replace localStorage with JWT session handling
-      localStorage.setItem(LOCAL_STORAGE_KEYS.USERNAME, data.user.username);
-      localStorage.setItem(LOCAL_STORAGE_KEYS.USER_ID, String(data.user.id)); // Convert to string
-
-      toast.success("Login successful!");
-      router.push("/");
-    } catch (err: any) {
-      toast.error(err.message || "Login failed");
-    }
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      // TODO: Move this fetch call to a reusable API helper function
-
-      const res = await fetch("/api/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        toast.error(errorData.error || "Signup failed");
-        return;
-      }
-
-      toast.success("Signup successful!");
-      setIsLogin(true);
-    } catch (err: any) {
-      toast.error(err.message || "Signup failed");
-    }
-  };
+      setBlogs(data.blogs);
+    };
+    fetchBlogs();
+  });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-teal-200">
-      <form
-        onSubmit={isLogin ? handleLogin : handleSignup}
-        className="bg-white p-6 rounded shadow-md w-full max-w-sm"
-      >
-        <h2 className="text-2xl font-bold mb-4 text-teal-800 text-center">
-          {isLogin ? "Login" : "Sign Up"}
-        </h2>
-        <input
-          className="w-full p-2 border rounded mb-4"
-          type="text"
-          name="username"
-          placeholder="Please enter username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          className="w-full p-2 border rounded mb-4"
-          type="password"
-          name="password"
-          placeholder="Please enter password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button
-          className="w-full bg-teal-500 hover:bg-teal-600 text-white py-2 rounded transition duration-200"
-          type="submit"
-        >
-          {isLogin ? "Login" : "Sign Up"}
-        </button>
-
-        <p className="text-center mt-4 text-sm">
-          {isLogin ? "New here?" : "Already have an account?"}{" "}
-          <button
-            type="button"
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-teal-700 underline ml-1"
-          >
-            {isLogin ? "Sign up" : "Login"} instead
-          </button>
+    <div>
+      <Navbar />
+      {/* Hero Section */}
+      <section className="h-screen flex flex-col justify-center items-center bg-teal-100 text-center px-4">
+        <h2 className="text-4xl font-bold text-teal-800 mb-4">My Blog Web</h2>
+        <p className="text-lg text-gray-700 mb-6">
+          Your Digital Diary — Capture Your Thoughts.
         </p>
-      </form>
+        <Link
+          href="/create"
+          className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition"
+        >
+          + Create a Blog
+        </Link>
+      </section>
+
+      {/* Blog List Section */}
+      <section className="p-6 bg-gray-50 min-h-screen">
+        <h3 className="text-2xl font-bold text-teal-700 mb-6 text-center">
+          Recent Blogs
+        </h3>
+        {blogs.length === 0 ? (
+          <p className="text-center text-gray-500">No blogs available.</p>
+        ) : (
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {blogs.map((blog) => (
+              <div key={blog.id} className="p-4 bg-white rounded-lg shadow">
+                <h4 className="text-lg font-bold text-teal-600">
+                  {blog.title}
+                </h4>
+                <p className="text-sm text-gray-500">
+                  {new Date(blog.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
