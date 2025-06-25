@@ -13,7 +13,7 @@ export default function CreateBlogPage() {
     const res = await fetch("/api/blogs", {
       method: "POST",
       headers: {
-        "content-Type": "pplication/json",
+        "content-Type": "application/json",
       },
       body: JSON.stringify({ title, content }),
     });

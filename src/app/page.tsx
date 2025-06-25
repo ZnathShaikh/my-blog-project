@@ -15,7 +15,7 @@ export default function HomePage() {
       setBlogs(data.blogs);
     };
     fetchBlogs();
-  });
+  }, []);
 
   return (
     <div>
