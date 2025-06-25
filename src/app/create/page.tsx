@@ -1,22 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components /Navbar";
+import { getLoggedInUser } from "../utils/storage";
 
 export default function CreateBlogPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [userId, setUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const user = getLoggedInUser(); // ✅ Get from localStorage
+    if (user) {
+      setUserId(user.id);
+    } else {
+      alert("You must be logged in to create a blog.");
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!userId) {
+      alert("User not logged in.");
+      return;
+    }
 
     const res = await fetch("/api/blogs", {
       method: "POST",
       headers: {
         "content-Type": "application/json",
       },
-      body: JSON.stringify({ title, content }),
+      body: JSON.stringify({ title, content, userId }),
     });
+
     if (res.ok) {
       alert("Blog Created!");
       setTitle("");

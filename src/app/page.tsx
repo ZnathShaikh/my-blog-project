@@ -51,6 +51,9 @@ export default function HomePage() {
                 <p className="text-sm text-gray-500">
                   {new Date(blog.createdAt).toLocaleDateString()}
                 </p>
+                <p className="text-sm text-gray-600 italic">
+                  By {blog.author?.username || "Unknown"}
+                </p>
               </div>
             ))}
           </div>
