@@ -3,6 +3,11 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components /Navbar";
 import { getLoggedInUser } from "../utils/storage";
+import "react-quill-new/dist/quill.snow.css";
+import dynamic from "next/dynamic";
+
+// SSR disabled for ReactQuill (needed for Next.js)
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function CreateBlogPage() {
   const [title, setTitle] = useState("");
@@ -65,13 +70,7 @@ export default function CreateBlogPage() {
             className="w-full border border-gray-300 p-3 rounded focus:outline-none focus:ring-2 focus:ring-teal-400"
           />
 
-          <textarea
-            placeholder="Blog Content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-            className="w-full border border-gray-300 p-3 h-48 rounded resize-none focus:outline-none focus:ring-2 focus:ring-teal-400"
-          />
+          <ReactQuill value={content} onChange={setContent} theme="snow" />
 
           <button
             type="submit"
