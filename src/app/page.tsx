@@ -15,7 +15,7 @@ export default function HomePage() {
       setBlogs(data.blogs);
     };
     fetchBlogs();
-  });
+  }, []);
 
   return (
     <div>
@@ -50,6 +50,9 @@ export default function HomePage() {
                 </h4>
                 <p className="text-sm text-gray-500">
                   {new Date(blog.createdAt).toLocaleDateString()}
+                </p>
+                <p className="text-sm text-gray-600 italic">
+                  By {blog.author?.username || "Unknown"}
                 </p>
               </div>
             ))}

@@ -6,12 +6,15 @@ const Navbar = () => {
   return (
     <nav className="flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-50">
       <h1 className="text-xl font-bold text-teal-600">My Blog Web</h1>
-      <div className="space-x-4">
+      <div className="space-x-6">
+        <Link href="/" className="text-teal-700 hover:underline font-medium">
+          Home
+        </Link>
         <Link
           href="/create"
-          className="inline-block bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition"
+          className="text-teal-700 hover:underline font-medium"
         >
-          + Create a Blog
+          Create
         </Link>
       </div>
     </nav>

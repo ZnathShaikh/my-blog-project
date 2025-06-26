@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { LOCAL_STORAGE_KEYS } from "@/constants/storage";
+import { setLoggedInUser } from "../utils/storage";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -31,8 +31,7 @@ export default function AuthPage() {
       const data = await res.json();
 
       // TODO: Replace localStorage with JWT session handling
-      localStorage.setItem(LOCAL_STORAGE_KEYS.USERNAME, data.user.username);
-      localStorage.setItem(LOCAL_STORAGE_KEYS.USER_ID, String(data.user.id)); // Convert to string
+      setLoggedInUser({ id: data.user.id, name: data.user.username });
 
       toast.success("Login successful!");
       router.push("/");
