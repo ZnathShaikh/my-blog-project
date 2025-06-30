@@ -3,23 +3,39 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import Navbar from "@/components /Navbar";
+import { getLoggedInUser } from "./utils/storage";
 
 export default function HomePage() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
 
   useEffect(() => {
     const fetchBlogs = async () => {
-      /////TODO: Add pagination (UI + backend)////
-      const res = await fetch("/api/blogs");
-      const data = await res.json();
-      setBlogs(data.blogs);
+      // ✅ STEP 1: Get logged-in user
+      const user = getLoggedInUser();
+
+      // ✅ STEP 2: Stop if not logged in
+      if (!user?.id) {
+        console.warn("User not logged in, cannot fetch blogs.");
+        return;
+      }
+
+      try {
+        // ✅ STEP 3: Fetch only blogs for this user
+        const res = await fetch(`/api/blogs?userId=${user.id}`);
+        const data = await res.json();
+        setBlogs(data.blogs);
+      } catch (err) {
+        console.error("Failed to load blogs", err);
+      }
     };
+
     fetchBlogs();
   }, []);
 
   return (
     <div>
       <Navbar />
+
       {/* Hero Section */}
       <section className="h-screen flex flex-col justify-center items-center bg-teal-100 text-center px-4">
         <h2 className="text-4xl font-bold text-teal-800 mb-4">My Blog Web</h2>
@@ -37,10 +53,14 @@ export default function HomePage() {
       {/* Blog List Section */}
       <section className="p-6 bg-gray-50 min-h-screen">
         <h3 className="text-2xl font-bold text-teal-700 mb-6 text-center">
-          Recent Blogs
+          Your Blogs
         </h3>
+
+        {/* ✅ Updated No Blogs Message */}
         {blogs.length === 0 ? (
-          <p className="text-center text-gray-500">No blogs available.</p>
+          <p className="text-center text-gray-500">
+            You haven’t written any blogs yet.
+          </p>
         ) : (
           <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {blogs.map((blog) => (
