@@ -32,3 +32,38 @@ export async function GET(
     );
   }
 }
+
+///////// POST API//////////
+
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const blogId = Number(params.id);
+  const { title, content, userId } = await request.json();
+
+  if (isNaN(blogId)) {
+    return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
+  }
+
+  try {
+    const updated = await prisma.blog.update({
+      where: {
+        id: blogId,
+        authorId: userId, // ✅ Ensure only author can edit
+      },
+      data: {
+        title,
+        content,
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (err) {
+    console.error("❌ Failed to update blog:", err);
+    return NextResponse.json(
+      { error: "Failed to update blog" },
+      { status: 500 }
+    );
+  }
+}

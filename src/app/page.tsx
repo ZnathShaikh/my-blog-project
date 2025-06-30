@@ -2,11 +2,24 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components /Navbar";
 import { getLoggedInUser } from "./utils/storage";
 
+interface Blog {
+  id: number;
+  title: string;
+  content: string;
+  createdAt: string;
+  author: {
+    id: number;
+    username: string;
+  };
+}
+
 export default function HomePage() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -65,7 +78,11 @@ export default function HomePage() {
           <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {blogs.map((blog) => (
               <Link href={`/blog/${blog.id}`} key={blog.id}>
-                <div key={blog.id} className="p-4 bg-white rounded-lg shadow">
+                <div
+                  key={blog.id}
+                  onClick={() => router.push(`/blog/${blog.id}`)}
+                  className="p-4 bg-white rounded-lg shadow hover:shadow-md cursor-pointer transition"
+                >
                   <h4 className="text-lg font-bold text-teal-600">
                     {blog.title}
                   </h4>
