@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Navbar from "@/components /Navbar";
 
 interface BlogPageProps {
   params: {
@@ -16,7 +17,8 @@ export default async function BlogPage({ params }: BlogPageProps) {
   const blog = await res.json();
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10 px-4">
+    <div className="min-h-screen bg-gray-100 ">
+      <Navbar />
       <div className="max-w-3xl mx-auto bg-white shadow p-6 rounded">
         <h1 className="text-3xl font-bold text-teal-700 mb-4">{blog.title}</h1>
         <p className="text-sm text-gray-500 italic mb-2">

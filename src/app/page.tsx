@@ -64,17 +64,19 @@ export default function HomePage() {
         ) : (
           <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {blogs.map((blog) => (
-              <div key={blog.id} className="p-4 bg-white rounded-lg shadow">
-                <h4 className="text-lg font-bold text-teal-600">
-                  {blog.title}
-                </h4>
-                <p className="text-sm text-gray-500">
-                  {new Date(blog.createdAt).toLocaleDateString()}
-                </p>
-                <p className="text-sm text-gray-600 italic">
-                  By {blog.author?.username || "Unknown"}
-                </p>
-              </div>
+              <Link href={`/blog/${blog.id}`} key={blog.id}>
+                <div key={blog.id} className="p-4 bg-white rounded-lg shadow">
+                  <h4 className="text-lg font-bold text-teal-600">
+                    {blog.title}
+                  </h4>
+                  <p className="text-sm text-gray-500">
+                    {new Date(blog.createdAt).toLocaleDateString()}
+                  </p>
+                  <p className="text-sm text-gray-600 italic">
+                    By {blog.author?.username || "Unknown"}
+                  </p>
+                </div>
+              </Link>
             ))}
           </div>
         )}
