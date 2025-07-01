@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import Navbar from "@/components /Navbar";
 import { getLoggedInUser } from "@/app/utils/storage";
 import "react-quill-new/dist/quill.snow.css";
+import { toast } from "react-hot-toast";
 
 // ✅ Dynamically import ReactQuill
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -18,6 +19,7 @@ export default function EditBlogPage({ params }: Props) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   // ✅ Fetch existing blog content
   useEffect(() => {
@@ -36,6 +38,8 @@ export default function EditBlogPage({ params }: Props) {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+
     const user = getLoggedInUser();
 
     const res = await fetch(`/api/blogs/${params.id}`, {
@@ -51,10 +55,10 @@ export default function EditBlogPage({ params }: Props) {
     });
 
     if (res.ok) {
-      alert("Blog updated!");
-      router.push(`/blog/${params.id}`);
+      toast.success("✅ Blog updated!"); // ✅ 2. Toast on success
+      router.replace(`/blog/${params.id}`);
     } else {
-      alert("Failed to update blog.");
+      toast.error("❌ Failed to update blog.");
     }
   };
 

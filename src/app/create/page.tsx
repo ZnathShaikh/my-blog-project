@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components /Navbar";
 import { getLoggedInUser } from "../utils/storage";
 import "react-quill-new/dist/quill.snow.css";
+import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 
 // SSR disabled for ReactQuill (needed for Next.js)
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -13,13 +15,14 @@ export default function CreateBlogPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [userId, setUserId] = useState<number | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const user = getLoggedInUser(); // ✅ Get from localStorage
     if (user) {
       setUserId(user.id);
     } else {
-      alert("You must be logged in to create a blog.");
+      toast.error("You must be logged in to create a blog.");
     }
   }, []);
 
@@ -27,7 +30,7 @@ export default function CreateBlogPage() {
     e.preventDefault();
 
     if (!userId) {
-      alert("User not logged in.");
+      toast.error("User not logged in.");
       return;
     }
 
@@ -40,11 +43,13 @@ export default function CreateBlogPage() {
     });
 
     if (res.ok) {
-      alert("Blog Created!");
+      console.log("should have fired");
+      toast.success("Blog created!");
+      router.replace("/");
       setTitle("");
       setContent("");
     } else {
-      alert("Failed to create post");
+      toast.error("Error creating the blog");
     }
   };
 

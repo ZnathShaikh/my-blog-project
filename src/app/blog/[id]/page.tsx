@@ -5,9 +5,11 @@ import { useParams } from "next/navigation";
 import Navbar from "@/components /Navbar";
 import { getLoggedInUser } from "@/app/utils/storage";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function BlogPage() {
   const params = useParams();
+  const router = useRouter();
   const blogId = params?.id;
   const [blog, setBlog] = useState<any>(null);
   const [isAuthor, setIsAuthor] = useState(false);
@@ -30,6 +32,29 @@ export default function BlogPage() {
 
     fetchBlog();
   }, [blogId]);
+
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this blog?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`/api/blogs/${blogId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        alert("Blog deleted successfully!");
+        router.replace("/");
+      } else {
+        alert("Failed to delete blog.");
+      }
+    } catch (error) {
+      console.error("Error deleting blog:", error);
+      alert("An error occurred. Try again.");
+    }
+  };
 
   if (!blog) {
     return (
@@ -62,6 +87,13 @@ export default function BlogPage() {
             >
               ✏️ Edit Blog
             </Link>
+            {/* 🔶 DELETE BUTTON */}
+            <button
+              onClick={handleDelete}
+              className="text-sm bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+            >
+              🗑️ Delete Blog
+            </button>
           </div>
         )}
       </div>

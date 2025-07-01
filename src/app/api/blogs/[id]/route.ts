@@ -33,7 +33,7 @@ export async function GET(
   }
 }
 
-///////// POST API//////////
+///////// PUT API//////////
 
 export async function PUT(
   request: Request,
@@ -63,6 +63,33 @@ export async function PUT(
     console.error("❌ Failed to update blog:", err);
     return NextResponse.json(
       { error: "Failed to update blog" },
+      { status: 500 }
+    );
+  }
+}
+
+/////// DELETE API///////
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const blogId = Number(params.id);
+
+  if (isNaN(blogId)) {
+    return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
+  }
+
+  try {
+    await prisma.blog.delete({
+      where: { id: blogId },
+    });
+
+    return NextResponse.json({ message: "Blog deleted successfully" });
+  } catch (err) {
+    console.error("❌ Failed to delete blog:", err);
+    return NextResponse.json(
+      { error: "Failed to delete blog" },
       { status: 500 }
     );
   }

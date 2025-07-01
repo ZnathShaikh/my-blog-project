@@ -21,6 +21,8 @@ export default function HomePage() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const router = useRouter();
 
+  const user = getLoggedInUser();
+
   useEffect(() => {
     const fetchBlogs = async () => {
       // ✅ STEP 1: Get logged-in user
@@ -44,6 +46,29 @@ export default function HomePage() {
 
     fetchBlogs();
   }, []);
+
+  const handleDelete = async (e: React.MouseEvent, blogId: number) => {
+    e.stopPropagation(); // prevent card click
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this blog?"
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/blogs/${blogId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setBlogs((prev) => prev.filter((blog) => blog.id !== blogId));
+      } else {
+        console.error("Failed to delete");
+      }
+    } catch (err) {
+      console.error("Error deleting blog:", err);
+    }
+  };
 
   return (
     <div>
@@ -81,7 +106,7 @@ export default function HomePage() {
                 <div
                   key={blog.id}
                   onClick={() => router.push(`/blog/${blog.id}`)}
-                  className="p-4 bg-white rounded-lg shadow hover:shadow-md cursor-pointer transition"
+                  className="relative p-4 bg-white rounded-lg shadow hover:shadow-md cursor-pointer transition"
                 >
                   <h4 className="text-lg font-bold text-teal-600">
                     {blog.title}
@@ -92,6 +117,35 @@ export default function HomePage() {
                   <p className="text-sm text-gray-600 italic">
                     By {blog.author?.username || "Unknown"}
                   </p>
+                  {user?.id === blog.author?.id && (
+                    <div className="absolute top-2 right-2 flex gap-2">
+                      {/* ✏️ Edit button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          router.push(`/blog/${blog.id}/edit`);
+                        }}
+                        className="w-8 h-8 bg-white border border-gray-300 rounded-full flex items-center justify-center text-xs shadow hover:bg-gray-100"
+                        title="Edit blog"
+                      >
+                        ✏️
+                      </button>
+
+                      {/* 🗑️ Delete button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          handleDelete(e, blog.id);
+                        }}
+                        className="w-8 h-8 bg-white border border-gray-300 rounded-full flex items-center justify-center text-xs shadow hover:bg-red-100"
+                        title="Delete blog"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  )}
                 </div>
               </Link>
             ))}
