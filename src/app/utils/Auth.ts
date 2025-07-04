@@ -15,3 +15,14 @@ export function useAuthRedirect() {
     }
   }, []);
 }
+
+export function useRedirectIfLoggedIn() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const user = getLoggedInUser();
+    if (user?.id) {
+      router.replace("/");
+    }
+  }, []);
+}

@@ -8,6 +8,7 @@ import { getLoggedInUser } from "./utils/storage";
 import toast from "react-hot-toast";
 import DeleteButton from "@/components/DeleteButton";
 import { useAuthRedirect } from "./utils/Auth";
+import { clearLoggedInUser } from "./utils/storage";
 
 interface Blog {
   id: number;
@@ -66,6 +67,12 @@ export default function HomePage() {
     } catch (err) {
       toast.error("Error deleting blog.");
     }
+  };
+
+  const handleLogout = () => {
+    clearLoggedInUser();
+    toast.success("Logged out!");
+    router.replace("/login");
   };
 
   return (

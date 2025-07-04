@@ -4,8 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { setLoggedInUser } from "../utils/storage";
+import { useRedirectIfLoggedIn } from "../utils/Auth";
 
 export default function AuthPage() {
+  useRedirectIfLoggedIn();
+
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(false);
   const [username, setUsername] = useState("");
