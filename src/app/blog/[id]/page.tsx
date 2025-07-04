@@ -6,6 +6,8 @@ import Navbar from "@/components /Navbar";
 import { getLoggedInUser } from "@/app/utils/storage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { DELETE } from "@/app/api/blogs/[id]/route";
+import toast from "react-hot-toast";
 
 export default function BlogPage() {
   const params = useParams();
@@ -13,6 +15,7 @@ export default function BlogPage() {
   const blogId = params?.id;
   const [blog, setBlog] = useState<any>(null);
   const [isAuthor, setIsAuthor] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     if (!blogId) return;
@@ -34,25 +37,18 @@ export default function BlogPage() {
   }, [blogId]);
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this blog?"
-    );
-    if (!confirmDelete) return;
-
     try {
       const res = await fetch(`/api/blogs/${blogId}`, {
         method: "DELETE",
       });
-
       if (res.ok) {
-        alert("Blog deleted successfully!");
-        router.replace("/");
+        toast.success("Deleted successfully!");
+        router.push("/");
       } else {
-        alert("Failed to delete blog.");
+        toast.error("Failed to delete.");
       }
     } catch (error) {
-      console.error("Error deleting blog:", error);
-      alert("An error occurred. Try again.");
+      toast.error("Something went wrong.");
     }
   };
 
@@ -89,11 +85,39 @@ export default function BlogPage() {
             </Link>
             {/* 🔶 DELETE BUTTON */}
             <button
-              onClick={handleDelete}
+              onClick={() => setShowModal(true)}
               className="text-sm bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
             >
               🗑️ Delete Blog
             </button>
+            {showModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center space-y-4">
+                  <p className="text-lg font-semibold">
+                    Are you sure you want to delete this blog?
+                  </p>
+
+                  <div className="flex justify-center space-x-4">
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                    >
+                      Cancel
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowModal(false);
+                        handleDelete();
+                      }}
+                      className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
