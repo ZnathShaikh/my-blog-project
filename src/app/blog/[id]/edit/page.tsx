@@ -7,6 +7,7 @@ import Navbar from "@/components /Navbar";
 import { getLoggedInUser } from "@/app/utils/storage";
 import "react-quill-new/dist/quill.snow.css";
 import { toast } from "react-hot-toast";
+import { useAuthRedirect } from "@/app/utils/Auth";
 
 // ✅ Dynamically import ReactQuill
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default function EditBlogPage({ params }: Props) {
+  useAuthRedirect();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const router = useRouter();

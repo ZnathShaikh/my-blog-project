@@ -7,11 +7,13 @@ import "react-quill-new/dist/quill.snow.css";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { useAuthRedirect } from "../utils/Auth";
 
 // SSR disabled for ReactQuill (needed for Next.js)
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function CreateBlogPage() {
+  useAuthRedirect();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [userId, setUserId] = useState<number | null>(null);
