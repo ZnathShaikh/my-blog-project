@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getLoggedInUser, clearLoggedInUser } from "@/app/utils/storage";
 import toast from "react-hot-toast";
 
 const Navbar = () => {
@@ -11,14 +10,45 @@ const Navbar = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const loggedInUser = getLoggedInUser();
-    setUser(loggedInUser);
+    const fetchUser = async () => {
+      try {
+        // ✅ NEW: fetch user from JWT cookie session
+        const res = await fetch("/api/me", {
+          credentials: "include", // ✅ IMPORTANT: allows sending cookies
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user); // ✅ set user data from cookie
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error("User fetch failed", err);
+        setUser(null); // fallback
+      }
+    };
+
+    fetchUser(); // ✅ call on component mount
   }, []);
 
-  const handleLogout = () => {
-    clearLoggedInUser();
-    toast.success("Logged out!");
-    router.replace("/auth");
+  const handleLogout = async () => {
+    try {
+      // ✅ NEW: call logout endpoint to clear JWT cookie
+      const res = await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include", // ✅ ensure cookie is sent
+      });
+
+      if (res.ok) {
+        toast.success("Logged out!");
+        router.replace("/auth"); // or "/auth"
+      } else {
+        toast.error("Logout failed");
+      }
+    } catch (err) {
+      toast.error("Logout error");
+    }
   };
 
   return (
@@ -36,6 +66,7 @@ const Navbar = () => {
           Create
         </Link>
 
+        {/* ✅ CONDITIONAL RENDERING BASED ON JWT COOKIE SESSION */}
         {user ? (
           <button
             onClick={handleLogout}
@@ -45,7 +76,7 @@ const Navbar = () => {
           </button>
         ) : (
           <Link
-            href="/login"
+            href="/login" // or "/auth" if you have a combined page
             className="bg-teal-600 text-white px-4 py-1 rounded hover:bg-teal-700 transition"
           >
             Login

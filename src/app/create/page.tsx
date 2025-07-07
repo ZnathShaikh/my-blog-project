@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Navbar from "@/components /Navbar";
-import { getLoggedInUser } from "../utils/storage";
 import "react-quill-new/dist/quill.snow.css";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
@@ -13,39 +12,24 @@ import { useAuthRedirect } from "../utils/Auth";
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function CreateBlogPage() {
-  useAuthRedirect();
+  useAuthRedirect(); // ✅ still protect route
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [userId, setUserId] = useState<number | null>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    const user = getLoggedInUser(); // ✅ Get from localStorage
-    if (user) {
-      setUserId(user.id);
-    } else {
-      toast.error("You must be logged in to create a blog.");
-    }
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!userId) {
-      toast.error("User not logged in.");
-      return;
-    }
-
+    // ✅ Only send title and content — no userId
     const res = await fetch("/api/blogs", {
       method: "POST",
       headers: {
         "content-Type": "application/json",
       },
-      body: JSON.stringify({ title, content, userId }),
+      body: JSON.stringify({ title, content }), //
     });
 
     if (res.ok) {
-      console.log("should have fired");
       toast.success("Blog created!");
       router.replace("/");
       setTitle("");

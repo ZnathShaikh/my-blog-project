@@ -1,8 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { getUserFromServerCookie } from "../../../../../lib/jwt";
 
 const prisma = new PrismaClient();
 
+///// ✅ GET BLOG BY ID (Public) /////
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -33,29 +35,37 @@ export async function GET(
   }
 }
 
-///////// PUT API//////////
-
+///// ✅ PUT (Update Blog) with Auth /////
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   const blogId = Number(params.id);
-  const { title, content, userId } = await request.json();
+  const user = getUserFromServerCookie(); // ✅ Get user from JWT
+
+  if (!user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { title, content } = await request.json();
 
   if (isNaN(blogId)) {
     return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
   }
 
   try {
+    // ✅ Check blog ownership
+    const existing = await prisma.blog.findUnique({
+      where: { id: blogId },
+    });
+
+    if (!existing || existing.authorId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const updated = await prisma.blog.update({
-      where: {
-        id: blogId,
-        authorId: userId, // ✅ Ensure only author can edit
-      },
-      data: {
-        title,
-        content,
-      },
+      where: { id: blogId },
+      data: { title, content },
     });
 
     return NextResponse.json(updated);
@@ -68,22 +78,33 @@ export async function PUT(
   }
 }
 
-/////// DELETE API///////
-
+///// ✅ DELETE with Auth /////
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   const blogId = Number(params.id);
+  const user = getUserFromServerCookie(); // ✅ Get user from JWT
+
+  if (!user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   if (isNaN(blogId)) {
     return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
   }
 
   try {
-    await prisma.blog.delete({
+    // ✅ Check blog ownership
+    const existing = await prisma.blog.findUnique({
       where: { id: blogId },
     });
+
+    if (!existing || existing.authorId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    await prisma.blog.delete({ where: { id: blogId } });
 
     return NextResponse.json({ message: "Blog deleted successfully" });
   } catch (err) {

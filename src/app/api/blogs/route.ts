@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
+// ✅ NEW: import helper to read JWT cookie
+import { getUserFromServerCookie } from "../../../../lib/jwt";
+
 const prisma = new PrismaClient();
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get("userId");
-  if (!userId) {
-    return NextResponse.json({ error: "User ID required" }, { status: 400 });
+  // ✅ CHANGE: Get user from JWT cookie instead of query param
+  const user = getUserFromServerCookie();
+  if (!user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
   try {
     const blogs = await prisma.blog.findMany({
-      where: { authorId: Number(userId) },
+      where: { authorId: user.id }, // ✅ use user.id from JWT
       orderBy: { createdAt: "desc" },
       include: { author: true },
     });
@@ -27,15 +31,21 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  // ✅ NEW: get logged-in user from cookie
+  const user = getUserFromServerCookie();
+  if (!user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const { title, content, userId } = await request.json();
+    const { title, content } = await request.json(); // ✅ REMOVE userId
 
     const newBlog = await prisma.blog.create({
       data: {
         title,
         content,
         author: {
-          connect: { id: userId },
+          connect: { id: user.id }, // ✅ Use user.id from JWT
         },
       },
     });

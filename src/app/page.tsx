@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components /Navbar";
-import { getLoggedInUser } from "./utils/storage";
+// ❌ Removed localStorage import (not used anymore)
+// import { getLoggedInUser } from "./utils/storage";
 import toast from "react-hot-toast";
 import DeleteButton from "@/components/DeleteButton";
 import { useAuthRedirect } from "./utils/Auth";
-import { clearLoggedInUser } from "./utils/storage";
+// ❌ Removed clearLoggedInUser (we'll call API logout now)
+// import { clearLoggedInUser } from "./utils/storage";
 
 interface Blog {
   id: number;
@@ -24,38 +26,45 @@ interface Blog {
 export default function HomePage() {
   useAuthRedirect();
   const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [user, setUser] = useState<any>(null); // ✅ added user state
   const router = useRouter();
 
-  const user = getLoggedInUser();
-
   useEffect(() => {
-    const fetchBlogs = async () => {
-      // ✅ STEP 1: Get logged-in user
-      const user = getLoggedInUser();
-
-      // ✅ STEP 2: Stop if not logged in
-      if (!user?.id) {
-        console.warn("User not logged in, cannot fetch blogs.");
-        return;
-      }
-
+    const fetchUserAndBlogs = async () => {
       try {
-        // ✅ STEP 3: Fetch only blogs for this user
-        const res = await fetch(`/api/blogs?userId=${user.id}`);
-        const data = await res.json();
-        setBlogs(data.blogs);
+        // ✅ Get logged-in user from API (not localStorage)
+        const userRes = await fetch("/api/me", {
+          credentials: "include", // ✅ send cookie
+        });
+
+        if (!userRes.ok) {
+          console.warn("User not logged in, cannot fetch blogs.");
+          return;
+        }
+
+        const userData = await userRes.json();
+        setUser(userData.user); // ✅ set user
+
+        // ✅ Fetch blogs (secured by server token)
+        const blogsRes = await fetch("/api/blogs", {
+          credentials: "include", // ✅ send cookie
+        });
+
+        const blogData = await blogsRes.json();
+        setBlogs(blogData.blogs);
       } catch (err) {
         console.error("Failed to load blogs", err);
       }
     };
 
-    fetchBlogs();
+    fetchUserAndBlogs();
   }, []);
 
   const handleDelete = async (blogId: number) => {
     try {
       const res = await fetch(`/api/blogs/${blogId}`, {
         method: "DELETE",
+        credentials: "include", // ✅ send cookie for secure delete
       });
 
       if (res.ok) {
@@ -69,16 +78,25 @@ export default function HomePage() {
     }
   };
 
-  const handleLogout = () => {
-    clearLoggedInUser();
-    toast.success("Logged out!");
-    router.replace("/login");
+  const handleLogout = async () => {
+    // ✅ Call server to clear token cookie
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      toast.success("Logged out!");
+      router.replace("/login");
+    } catch (err) {
+      toast.error("Logout failed");
+    }
   };
 
   return (
     <div>
-      <Navbar />
-
+      <Navbar onLogout={handleLogout} />{" "}
+      {/* ✅ pass logout handler if needed */}
       {/* Hero Section */}
       <section className="h-screen flex flex-col justify-center items-center bg-teal-100 text-center px-4">
         <h2 className="text-4xl font-bold text-teal-800 mb-4">My Blog Web</h2>
@@ -92,14 +110,12 @@ export default function HomePage() {
           + Create a Blog
         </Link>
       </section>
-
       {/* Blog List Section */}
       <section className="p-6 bg-gray-50 min-h-screen">
         <h3 className="text-2xl font-bold text-teal-700 mb-6 text-center">
           Your Blogs
         </h3>
 
-        {/* ✅ Updated No Blogs Message */}
         {blogs.length === 0 ? (
           <p className="text-center text-gray-500">
             You haven’t written any blogs yet.
@@ -125,7 +141,7 @@ export default function HomePage() {
                 {user?.id === blog.author?.id && (
                   <div
                     className="absolute top-2 right-2 flex gap-2"
-                    onClick={(e) => e.stopPropagation()} // ✅ block card click from edit/delete
+                    onClick={(e) => e.stopPropagation()} // ✅ prevent parent click
                   >
                     {/* ✏️ Edit */}
                     <button
@@ -140,7 +156,7 @@ export default function HomePage() {
                       ✏️
                     </button>
 
-                    {/* 🗑️ Delete modal */}
+                    {/* 🗑️ Delete */}
                     <DeleteButton
                       onConfirm={() => handleDelete(blog.id)}
                       message={`Are you sure you want to delete "${blog.title}"?`}

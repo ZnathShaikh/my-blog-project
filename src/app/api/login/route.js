@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
 
 
 const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 export async function POST(request) {
   try {
@@ -29,7 +32,22 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // // TODO: Implement JWT instead of returning plain username
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      JWT_SECRET,
+      { expiresIn: '7d' } // valid for 7 days
+    );
+
+    // ✅ 4. Set cookie
+    cookies().set('token', token, {
+      httpOnly: true,
+      secure: false, // ⛔ force to false on localhost
+      sameSite: 'lax', // ✅ lax works better on localhost
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    
+
 
     return NextResponse.json({
       message: 'Login successful',

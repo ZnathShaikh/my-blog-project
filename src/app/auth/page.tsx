@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { setLoggedInUser } from "../utils/storage";
 import { useRedirectIfLoggedIn } from "../utils/Auth";
 
 export default function AuthPage() {
@@ -17,11 +16,10 @@ export default function AuthPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // TODO: Move this fetch call to a reusable API helper function
-
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // ✅ required to send/receive cookie
         body: JSON.stringify({ username, password }),
       });
 
@@ -31,10 +29,9 @@ export default function AuthPage() {
         return;
       }
 
-      const data = await res.json();
-
-      // TODO: Replace localStorage with JWT session handling
-      setLoggedInUser({ id: data.user.id, name: data.user.username });
+      // ✅ Removed: localStorage user setting
+      // ❌ const data = await res.json();
+      // ❌ setLoggedInUser({ id: data.user.id, name: data.user.username });
 
       toast.success("Login successful!");
       router.push("/");
@@ -46,8 +43,6 @@ export default function AuthPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // TODO: Move this fetch call to a reusable API helper function
-
       const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -61,7 +56,7 @@ export default function AuthPage() {
       }
 
       toast.success("Signup successful!");
-      setIsLogin(true);
+      setIsLogin(true); // ✅ switch to login form after signup
     } catch (err: any) {
       toast.error(err.message || "Signup failed");
     }
@@ -83,6 +78,7 @@ export default function AuthPage() {
           placeholder="Please enter username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          required
         />
         <input
           className="w-full p-2 border rounded mb-4"
@@ -91,6 +87,7 @@ export default function AuthPage() {
           placeholder="Please enter password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
         <button
           className="w-full bg-teal-500 hover:bg-teal-600 text-white py-2 rounded transition duration-200"
